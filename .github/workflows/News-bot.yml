@@ -1,0 +1,50 @@
+name: Patagh News Telegram Bot
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: patagh-news-bot
+  cancel-in-progress: false
+
+jobs:
+  publish-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore published news history
+        uses: actions/cache/restore@v4
+        with:
+          path: seen_urls.json
+          key: patagh-news-history-${{ github.run_id }}
+          restore-keys: |
+            patagh-news-history-
+
+      - name: Run news bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+        run: python bot.py
+
+      - name: Save published news history
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: seen_urls.json
+          key: patagh-news-history-${{ github.run_id }}
