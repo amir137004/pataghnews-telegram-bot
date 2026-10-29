@@ -1,2 +1,3 @@
-# pataghnews-telegram-bot
-Patagh News Auto Publisher
+requests
+feedparser
+beautifulsoup4
